@@ -1,0 +1,1 @@
+{"version":3,"file":"userInfo.d.ts","sourceRoot":"","sources":["../../../src/generated/types/userInfo.ts"],"names":[],"mappings":"AAAA;;;;;GAKG;AAEH,MAAM,WAAW,QAAQ;IACvB,SAAS,EAAE,OAAO,CAAC;IACnB,QAAQ,EAAE,MAAM,CAAC;IACjB,MAAM,EAAE,MAAM,CAAC;IACf,gBAAgB;IAChB,WAAW,EAAE,MAAM,GAAG,IAAI,CAAC;IAC3B,UAAU,EAAE,MAAM,CAAC;IACnB,WAAW,EAAE,MAAM,CAAC;CACrB"}

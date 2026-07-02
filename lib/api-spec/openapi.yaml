@@ -1,0 +1,413 @@
+openapi: "3.1.0"
+info:
+  title: Api
+  version: "1.0.0"
+servers:
+  - url: /api
+
+paths:
+  /healthz:
+    get:
+      operationId: getHealth
+      summary: Health check
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/HealthStatus"
+
+  /sets:
+    get:
+      operationId: getSets
+      summary: List all flashcard sets
+      responses:
+        "200":
+          description: List of flashcard sets
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/FlashcardSet"
+
+    post:
+      operationId: createSet
+      summary: Save a new flashcard set
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/FlashcardSetInput"
+      responses:
+        "201":
+          description: Created set
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/FlashcardSet"
+
+  /sets/{id}:
+    get:
+      operationId: getSet
+      summary: Get a single flashcard set
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Flashcard set
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/FlashcardSet"
+        "404":
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+
+    delete:
+      operationId: deleteSet
+      summary: Delete a flashcard set
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Deleted
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DeleteResult"
+
+  /sets/{id}/share:
+    post:
+      operationId: shareSet
+      summary: Generate or retrieve a shareable token for a set
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Share token
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ShareTokenResult"
+        "404":
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+
+  /sets/share/{token}:
+    get:
+      operationId: getSharedSet
+      summary: Get a shared flashcard set by token
+      parameters:
+        - name: token
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Flashcard set
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/FlashcardSet"
+        "404":
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+
+  /generate/text:
+    post:
+      operationId: generateFromText
+      summary: Generate flashcards from pasted text
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/TextInput"
+      responses:
+        "200":
+          description: Generated flashcards
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/GenerateResult"
+
+  /generate/image:
+    post:
+      operationId: generateFromImage
+      summary: Generate flashcards from a photo of notes
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ImageInput"
+      responses:
+        "200":
+          description: Generated flashcards
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/GenerateResult"
+
+  /generate/url:
+    post:
+      operationId: generateFromUrl
+      summary: Generate flashcards from a YouTube video or Google Docs URL
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UrlInput"
+      responses:
+        "200":
+          description: Generated flashcards
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/GenerateResult"
+        "400":
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+
+  /chat:
+    post:
+      operationId: chatWithTutor
+      summary: Send a message to the AI tutor
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ChatInput"
+      responses:
+        "200":
+          description: AI response
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ChatResult"
+
+  /user:
+    get:
+      operationId: getUser
+      summary: Get current user info and stats
+      responses:
+        "200":
+          description: User info
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UserInfo"
+
+  /user/streak:
+    post:
+      operationId: updateStreak
+      summary: Record a study session to update the streak
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/StreakUpdate"
+      responses:
+        "200":
+          description: Updated user info
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UserInfo"
+
+components:
+  schemas:
+    HealthStatus:
+      type: object
+      required: [status]
+      properties:
+        status:
+          type: string
+
+    FlashcardSet:
+      type: object
+      required: [id, title, cards, createdAt, tags]
+      properties:
+        id:
+          type: integer
+        title:
+          type: string
+        cards:
+          type: array
+          items:
+            $ref: "#/components/schemas/Flashcard"
+        createdAt:
+          type: string
+        tags:
+          type: array
+          items:
+            type: string
+        shareToken:
+          type: ["string", "null"]
+
+    Flashcard:
+      type: object
+      required: [front, back]
+      properties:
+        front:
+          type: string
+        back:
+          type: string
+
+    FlashcardSetInput:
+      type: object
+      required: [title, cards]
+      properties:
+        title:
+          type: string
+        cards:
+          type: array
+          items:
+            $ref: "#/components/schemas/Flashcard"
+        tags:
+          type: array
+          items:
+            type: string
+
+    TextInput:
+      type: object
+      required: [text]
+      properties:
+        text:
+          type: string
+
+    ImageInput:
+      type: object
+      required: [imageData, mimeType]
+      properties:
+        imageData:
+          type: string
+          description: Base64-encoded image data
+        mimeType:
+          type: string
+          description: MIME type of the image (e.g. image/jpeg)
+
+    UrlInput:
+      type: object
+      required: [url]
+      properties:
+        url:
+          type: string
+          description: YouTube video URL or public Google Docs link
+
+    GenerateResult:
+      type: object
+      required: [cards, title]
+      properties:
+        cards:
+          type: array
+          items:
+            $ref: "#/components/schemas/Flashcard"
+        title:
+          type: string
+
+    ChatMessage:
+      type: object
+      required: [role, content]
+      properties:
+        role:
+          type: string
+          enum: [user, model]
+        content:
+          type: string
+
+    ChatInput:
+      type: object
+      required: [message]
+      properties:
+        message:
+          type: string
+        history:
+          type: array
+          items:
+            $ref: "#/components/schemas/ChatMessage"
+
+    ChatResult:
+      type: object
+      required: [reply]
+      properties:
+        reply:
+          type: string
+
+    UserInfo:
+      type: object
+      required: [isPremium, setCount, streak, lastStudied, totalCards, daysStudied]
+      properties:
+        isPremium:
+          type: boolean
+        setCount:
+          type: integer
+        streak:
+          type: integer
+        lastStudied:
+          type: ["string", "null"]
+        totalCards:
+          type: integer
+        daysStudied:
+          type: integer
+
+    StreakUpdate:
+      type: object
+      required: [studied]
+      properties:
+        studied:
+          type: boolean
+
+    ShareTokenResult:
+      type: object
+      required: [shareToken, shareUrl]
+      properties:
+        shareToken:
+          type: string
+        shareUrl:
+          type: string
+
+    DeleteResult:
+      type: object
+      required: [success]
+      properties:
+        success:
+          type: boolean
+
+    ApiError:
+      type: object
+      required: [error]
+      properties:
+        error:
+          type: string
